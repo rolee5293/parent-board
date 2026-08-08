@@ -85,6 +85,12 @@ export default function App() {
             <li>▸ 两个孩子的学习数据会<strong className="text-val-text">自动同步到云端</strong>，无需孩子手动操作。</li>
             <li>▸ 本页面每 30 秒自动刷新一次，随时看到最新进度。</li>
             <li>▸ 柱状图红色 = 当天 4 项任务全部完成；超过 3 天未更新会显示黄色提醒。</li>
+            <li>
+              ▸ <strong className="text-val-text">已学</strong> = 学过的词；
+              <strong className="text-val-text">掌握</strong> = 连过 5 轮复习（间隔 1/2/4/7/15 天）的词，
+              同一个词最快也要 <strong className="text-val-text">29 天</strong>才会计入，开头一个月是 0 属正常。
+            </li>
+            <li>▸ 阅读篇目读完一轮会从头循环，「累计 N 次」是含重复的总完成次数。</li>
           </ul>
         </footer>
       </main>

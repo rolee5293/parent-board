@@ -119,6 +119,8 @@ export interface KidSummary {
   quizCorrect: number;
   quizTotal: number;
   readingsDone: number;
+  /** 已覆盖的不同篇目数（readingsDone 会循环累计，故与总篇数取小） */
+  readingsDistinct: number;
   totalReadings: number;
   badges: number;
   perfectDays: number;
@@ -181,6 +183,10 @@ export function summarize(row: ProgressRow): KidSummary {
     quizCorrect: stats.quizCorrect ?? 0,
     quizTotal: stats.quizQuestions ?? 0,
     readingsDone: stats.readingsDone ?? 0,
+    // readingsDone 是累计完成次数：阅读页按 readingsDone % 篇数 顺序循环取篇目，
+    // 读完一轮会从头再来，所以它会远超总篇数（线上已到 457/41）。
+    // 覆盖到的不同篇目数就是二者取小。
+    readingsDistinct: Math.min(stats.readingsDone ?? 0, meta.totalReadings),
     totalReadings: meta.totalReadings,
     badges: save.badges?.length ?? 0,
     perfectDays: stats.perfectDays ?? 0,

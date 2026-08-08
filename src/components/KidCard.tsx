@@ -67,12 +67,14 @@ export function KidCard({ s, now }: { s: KidSummary; now: number }) {
         {/* 词汇进度 */}
         <div>
           <div className="mb-1 flex items-center justify-between text-[10px] text-val-dim">
-            <span className="val-title tracking-[0.2em]">词汇掌握</span>
+            <span className="val-title tracking-[0.2em]">词汇进度</span>
             <span>
-              已学 {s.wordsLearned} · 掌握 {s.wordsMastered}/{s.totalWords}
+              已学 {s.wordsLearned}/{s.totalWords} · 掌握 {s.wordsMastered}
             </span>
           </div>
-          <Bar pct={s.wordsMastered / s.totalWords} color="linear-gradient(90deg,#3DDBD9,#FF4655)" />
+          {/* 进度条以"已学"为准：掌握需连过 5 轮复习（间隔 1/2/4/7/15 天，最快 29 天），
+              开头一个月必然是 0，拿它当主进度条既无信息量也易被误读为没进展 */}
+          <Bar pct={s.wordsLearned / s.totalWords} color="linear-gradient(90deg,#3DDBD9,#FF4655)" />
         </div>
 
         {/* 阅读进度 */}
@@ -80,10 +82,11 @@ export function KidCard({ s, now }: { s: KidSummary; now: number }) {
           <div className="mb-1 flex items-center justify-between text-[10px] text-val-dim">
             <span className="val-title tracking-[0.2em]">阅读进度</span>
             <span>
-              {s.readingsDone}/{s.totalReadings} 篇
+              {s.readingsDistinct}/{s.totalReadings} 篇
+              {s.readingsDone > s.totalReadings && ` · 累计 ${s.readingsDone} 次`}
             </span>
           </div>
-          <Bar pct={s.readingsDone / s.totalReadings} color="linear-gradient(90deg,#FFC24B,#FF4655)" />
+          <Bar pct={s.readingsDistinct / s.totalReadings} color="linear-gradient(90deg,#FFC24B,#FF4655)" />
         </div>
 
         {/* 统计格子 */}
