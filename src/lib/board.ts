@@ -52,6 +52,75 @@ interface RawSave {
   };
 }
 
+/* ================= 多设备合并 ================= */
+
+/**
+ * 云端每台设备独占一行，app 形如 "raz#<设备ID>"；迁移前的历史行是无后缀的 "raz"。
+ * 家长端必须把同一应用的所有行合并后再统计，否则只会看到某一台设备的进度。
+ *
+ * 合并准则与学习端一致：累计量取 max（单台设备内单调递增，取 max 不会重复计数），
+ * 完成标记取或，集合取并。
+ */
+function baseApp(app: string): string {
+  const i = app.indexOf("#");
+  return i === -1 ? app : app.slice(0, i);
+}
+
+const biggest = (a = 0, b = 0) => (a > b ? a : b);
+
+function mergeDayRaw(a: DayRecordRaw, b: DayRecordRaw): DayRecordRaw {
+  const done = (x?: { done?: boolean }, y?: { done?: boolean }) => ({ done: !!x?.done || !!y?.done });
+  return {
+    xp: biggest(a.xp, b.xp),
+    newTask: done(a.newTask, b.newTask),
+    reviewTask: done(a.reviewTask, b.reviewTask),
+    quizTask: done(a.quizTask, b.quizTask),
+    readingTask: done(a.readingTask, b.readingTask),
+  };
+}
+
+function mergeSaveRaw(a: RawSave, b: RawSave): RawSave {
+  const daily: Record<string, DayRecordRaw> = { ...(a.daily ?? {}) };
+  for (const [d, rec] of Object.entries(b.daily ?? {})) {
+    const cur = daily[d];
+    daily[d] = cur ? mergeDayRaw(cur, rec) : rec;
+  }
+  return {
+    version: 1,
+    xp: biggest(a.xp, b.xp),
+    wordCursor: biggest(a.wordCursor, b.wordCursor),
+    badges: Array.from(new Set([...(a.badges ?? []), ...(b.badges ?? [])])),
+    daily,
+    stats: {
+      masteredCount: biggest(a.stats?.masteredCount, b.stats?.masteredCount),
+      quizQuestions: biggest(a.stats?.quizQuestions, b.stats?.quizQuestions),
+      quizCorrect: biggest(a.stats?.quizCorrect, b.stats?.quizCorrect),
+      readingsDone: biggest(a.stats?.readingsDone, b.stats?.readingsDone),
+      perfectDays: biggest(a.stats?.perfectDays, b.stats?.perfectDays),
+    },
+  };
+}
+
+/** 按应用归并多设备行；updated_at 取该应用各行的最大值（历史行时间戳很旧，取错会误报未同步） */
+export function mergeRowsByApp(rows: ProgressRow[]): ProgressRow[] {
+  const byApp = new Map<string, ProgressRow>();
+  for (const row of rows) {
+    const app = baseApp(row.app);
+    if (app !== "raz" && app !== "ielts") continue; // 忽略历史测试行
+    const cur = byApp.get(app);
+    if (!cur) {
+      byApp.set(app, { ...row, app });
+      continue;
+    }
+    byApp.set(app, {
+      app,
+      data: mergeSaveRaw(cur.data ?? {}, row.data ?? {}),
+      updated_at: row.updated_at > cur.updated_at ? row.updated_at : cur.updated_at,
+    });
+  }
+  return [...byApp.values()];
+}
+
 /* ================= 日期工具 ================= */
 
 function todayStr(d = new Date()): string {

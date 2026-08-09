@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchProgress, summarize, timeAgo, type KidSummary } from "@/lib/board";
+import { fetchProgress, mergeRowsByApp, summarize, timeAgo, type KidSummary } from "@/lib/board";
 import { EmptyCard, KidCard } from "@/components/KidCard";
 
 const POLL_MS = 30_000;
@@ -18,7 +18,8 @@ export default function App() {
     }
     setOffline(false);
     const next: Partial<Record<"ielts" | "raz", KidSummary>> = {};
-    for (const row of rows) {
+    // 先按应用把各设备的行合并，再统计——否则只会看到其中一台设备的进度
+    for (const row of mergeRowsByApp(rows)) {
       if (row.app === "ielts" || row.app === "raz") {
         next[row.app] = summarize(row);
       }
