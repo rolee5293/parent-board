@@ -23,7 +23,7 @@ function StatCell({ icon, value, label }: { icon: string; value: string; label: 
   );
 }
 
-export function KidCard({ s, now }: { s: KidSummary; now: number }) {
+export function KidCard({ s, now, place }: { s: KidSummary; now: number; place?: number }) {
   const stale = isStale(s.updatedAt, now);
   const quizPct = s.quizTotal > 0 ? Math.round((s.quizCorrect / s.quizTotal) * 100) : null;
   const maxXp = Math.max(1, ...s.days.map((d) => d.xp));
@@ -34,8 +34,23 @@ export function KidCard({ s, now }: { s: KidSummary; now: number }) {
       <div className="bg-stripes border-b border-val-line p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="val-title text-[10px] tracking-[0.3em] text-val-red">
-              {s.kid} // {s.appName}
+            <p className="val-title flex items-center gap-2 text-[10px] tracking-[0.3em] text-val-red">
+              {place ? (
+                <span
+                  className="clip-tag inline-flex h-5 w-5 items-center justify-center text-[10px]"
+                  style={{
+                    background: place === 1 ? "#FFF3B022" : "#5A606822",
+                    color: place === 1 ? "#FFF3B0" : "#C4CDD4",
+                    border: `1px solid ${place === 1 ? "#FFF3B066" : "#5A606866"}`,
+                  }}
+                  title={`战力榜第 ${place} 名`}
+                >
+                  {place}
+                </span>
+              ) : null}
+              <span>
+                {s.kid} // {s.appName}
+              </span>
             </p>
             <div className="mt-1 flex items-center gap-2">
               <span
@@ -45,6 +60,14 @@ export function KidCard({ s, now }: { s: KidSummary; now: number }) {
                 <span className="inline-block h-2 w-2 rotate-45" style={{ background: s.rankColor }} />
                 {s.rankName}
               </span>
+              {s.peak > 0 && (
+                <span
+                  className="clip-tag val-title inline-flex items-center gap-1 px-2 py-0.5 text-[10px]"
+                  style={{ background: "#FFF3B022", color: "#FFF3B0", border: "1px solid #FFF3B066" }}
+                >
+                  👑 巅峰 {s.peak}
+                </span>
+              )}
               <span className="val-title text-sm text-val-gold">
                 <span className={s.streak > 0 ? "anim-flame" : "grayscale opacity-50"}>🔥</span> {s.streak} 天
               </span>
@@ -62,6 +85,28 @@ export function KidCard({ s, now }: { s: KidSummary; now: number }) {
           <p className="clip-card-sm border border-val-gold/50 bg-val-gold/10 px-3 py-2 text-xs text-val-gold">
             ⚠ 数据可能不是最新（已超过 3 天未同步）
           </p>
+        )}
+
+        {/* 巅峰层下一级：段位满级后这是唯一还在动的目标 */}
+        {s.nextPeak && (
+          <div className="clip-card-sm border border-val-line bg-val-bg p-2.5">
+            <div className="mb-1 flex items-center justify-between gap-2 text-[10px]">
+              <span className="val-title tracking-[0.2em] text-val-dim">
+                下一级 · 巅峰 {s.nextPeak.level} {s.nextPeak.name}
+              </span>
+              <span className={cn("val-title", s.nextPeak.cur >= s.nextPeak.need ? "text-val-teal" : "text-val-dim")}>
+                {s.nextPeak.cur}/{s.nextPeak.need}
+              </span>
+            </div>
+            <Bar
+              pct={s.nextPeak.cur / s.nextPeak.need}
+              color="linear-gradient(90deg,#FFF3B0,#FF4655)"
+            />
+            <p className="mt-1 text-[10px] text-val-dim">
+              {s.nextPeak.challenge}
+              {s.nextPeak.xpGap > 0 ? ` · XP 还差 ${s.nextPeak.xpGap}` : " · XP 已达标 ✓"}
+            </p>
+          </div>
         )}
 
         {/* 词汇进度 */}
