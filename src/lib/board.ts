@@ -261,6 +261,8 @@ function peakGoals(app: "ielts" | "raz") {
 
 export interface PeakInfo {
   level: number;
+  /** 当前巅峰等级的中文名，未入巅峰为 null */
+  name: string | null;
   next: { level: number; name: string; challenge: string; cur: number; need: number; xpGap: number } | null;
 }
 
@@ -274,6 +276,7 @@ function peakInfo(app: "ielts" | "raz", xp: number, m: Record<string, number>): 
   const g = goals[level];
   return {
     level,
+    name: level > 0 ? PEAK_NAMES[level - 1] : null,
     next: g
       ? {
           level: level + 1,
@@ -317,6 +320,7 @@ export interface KidSummary {
   perfectDays: number;
   maxStreak: number;
   peak: number;
+  peakName: string | null;
   nextPeak: PeakInfo["next"];
   days: DayBar[];
 }
@@ -407,6 +411,7 @@ export function summarize(row: ProgressRow): KidSummary {
     perfectDays: stats.perfectDays ?? 0,
     maxStreak,
     peak: peak.level,
+    peakName: peak.name,
     nextPeak: peak.next,
     days,
   };

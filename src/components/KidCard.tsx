@@ -65,7 +65,7 @@ export function KidCard({ s, now, place }: { s: KidSummary; now: number; place?:
                   className="clip-tag val-title inline-flex items-center gap-1 px-2 py-0.5 text-[10px]"
                   style={{ background: "#FFF3B022", color: "#FFF3B0", border: "1px solid #FFF3B066" }}
                 >
-                  👑 巅峰 {s.peak}
+                  👑 巅峰 {s.peak}{s.peakName ? ` ${s.peakName}` : ""}
                 </span>
               )}
               <span className="val-title text-sm text-val-gold">
